@@ -1,0 +1,29 @@
+<resources>
+
+	<string name = "app_name">ComposeSample</string>
+
+	<string name = "main_screen_greetings_name">Hello %1$s!</string>
+	<string name = "main_screen_user_name">YOUR_NAME_HERE</string>
+	<string name = "main_screen_menu_options_description">Below is the screens available:</string>
+	<string-array name = "main_screen_menu_options">
+		<item>Login Screen</item>
+	</string-array>
+
+	<string name = "login_screen_field_user_name">User Name</string>
+	<string name = "login_screen_field_password">Password</string>
+	<string name = "login_screen_button_login">Login</string>
+	<string name = "login_screen_validation_empty_user_name">Please enter the user name</string>
+	<string name = "login_screen_validation_user_name_length_limit_reached">
+        Maximum Length for user name reached.
+    </string>
+	<string name = "login_screen_validation_user_name_length_exceeded">
+        Length Exceeded : %1$d
+    </string>
+	<string name = "login_screen_validation_empty_password">Please enter the password</string>
+	<string name = "login_screen_validation_password_containing_illegal_characters">
+        Following characters are not allowed : ?, ~, ., %
+    </string>
+
+	<string name = "content_description_login_password_visibility_toggle">Password Toggle</string>
+
+</resources>
