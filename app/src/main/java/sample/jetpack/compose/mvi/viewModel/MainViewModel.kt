@@ -10,6 +10,7 @@ import sample.jetpack.compose.exception.NoMenuOptionsException
 import sample.jetpack.compose.mvi.action.MainAction
 
 import sample.jetpack.compose.mvi.middleware.LoggingMiddleWare
+import sample.jetpack.compose.mvi.middleware.NavigationMiddleWare
 
 import sample.jetpack.compose.mvi.model.MenuOption
 
@@ -30,11 +31,18 @@ class MainViewModel @Inject constructor(
 	loggingMiddleWare: LoggingMiddleWare<MainState, MainAction>
 ) : MVIViewModel<MainState, MainAction>() {
 
+	var navigationLambda: ((MainState, MainAction) -> Unit)? = null
+
 	override val store : Store<MainState, MainAction> =
 		Store(
 			initialState = prepareInitialState(),
 			reducer = MainReducer(),
-			middleWares = listOf(loggingMiddleWare),
+			middleWares = listOf(
+				loggingMiddleWare,
+				NavigationMiddleWare { state, action ->
+					navigationLambda?.invoke(state, action)
+				}
+			),
 			coroutineScope = viewModelScope
 		)
 

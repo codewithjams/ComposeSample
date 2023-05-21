@@ -14,8 +14,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModelProvider
 
 import dagger.android.AndroidInjection
+import sample.jetpack.compose.mvi.action.MainAction
 
 import sample.jetpack.compose.mvi.factory.VMFactory
+import sample.jetpack.compose.mvi.state.MainState
 
 import sample.jetpack.compose.mvi.viewModel.MainViewModel
 
@@ -46,6 +48,8 @@ class MainActivity : ComponentActivity() {
 
 		_viewModel = ViewModelProvider(this, viewModelFactory)[MainViewModel::class.java]
 
+		viewModel.navigationLambda = this::onNavigateLambdaInvoked
+
 		super.onCreate(savedInstanceState)
 
 		setContent {
@@ -58,8 +62,7 @@ class MainActivity : ComponentActivity() {
 				) {
 					MainScreen(
 						state = state.value,
-						onMenuOptionClicked = viewModel::onMenuOptionClicked,
-						onNavigateScreen = this::onNavigateScreen
+						onMenuOptionClicked = viewModel::onMenuOptionClicked
 					)
 				}
 
@@ -70,7 +73,14 @@ class MainActivity : ComponentActivity() {
 
 	override fun onDestroy() {
 		super.onDestroy()
+		viewModel.navigationLambda = null
 		_viewModel = null
+	}
+
+	private fun onNavigateLambdaInvoked(@Suppress("UNUSED_PARAMETER") state: MainState, action: MainAction) {
+		when(action) {
+			is MainAction.MenuOptionClicked -> onNavigateScreen(action.option.id)
+		}
 	}
 
 	private fun onNavigateScreen(@MenuOptionsValidator code: Int) {

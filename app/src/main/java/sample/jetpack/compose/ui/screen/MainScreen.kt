@@ -41,14 +41,8 @@ import sample.jetpack.compose.utility.constants.TEST_TAG_MAIN_TEXT_GREETINGS
 @Composable
 fun MainScreen(
 	state: MainState,
-	onMenuOptionClicked : (MenuOption) -> Unit,
-	onNavigateScreen: (Int) -> Unit
+	onMenuOptionClicked : (MenuOption) -> Unit
 ) {
-
-	if (state.navigate && !state.navigated) {
-		onNavigateScreen.invoke(state.navigationCode)
-		state.navigated = true
-	}
 
 	Column(
 		modifier = Modifier
