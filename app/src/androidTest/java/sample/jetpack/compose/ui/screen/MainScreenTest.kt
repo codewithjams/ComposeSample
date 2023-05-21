@@ -23,6 +23,7 @@ import org.junit.Rule
 import org.junit.Test
 
 import sample.jetpack.compose.R
+import sample.jetpack.compose.mvi.action.MainAction
 
 import sample.jetpack.compose.mvi.middleware.LoggingMiddleWare
 
@@ -161,6 +162,12 @@ class MainScreenTest {
 			loggingMiddleWare = LoggingMiddleWare()
 		)
 
+		viewModel.navigationLambda = { _, action ->
+			when(action) {
+				is MainAction.MenuOptionClicked -> onNavigateListener.invoke(action.option.id)
+			}
+		}
+
 		// Wrapping the screen under test in a Surface.
 		// This is because when the state changes from ViewModel, whole Surface will recompose,
 		// while retaining the same instance of viewModel.
@@ -170,8 +177,7 @@ class MainScreenTest {
 
 			MainScreen(
 				state = state.value,
-				onMenuOptionClicked = viewModel::onMenuOptionClicked,
-				onNavigateScreen = onNavigateListener
+				onMenuOptionClicked = viewModel::onMenuOptionClicked
 			)
 
 		}
