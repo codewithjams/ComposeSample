@@ -8,15 +8,18 @@ import androidx.activity.compose.setContent
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.State
 
 import androidx.compose.runtime.collectAsState
 
 import androidx.lifecycle.ViewModelProvider
 
 import dagger.android.AndroidInjection
+
 import sample.jetpack.compose.mvi.action.MainAction
 
 import sample.jetpack.compose.mvi.factory.VMFactory
+
 import sample.jetpack.compose.mvi.state.MainState
 
 import sample.jetpack.compose.mvi.viewModel.MainViewModel
@@ -24,6 +27,7 @@ import sample.jetpack.compose.mvi.viewModel.MainViewModel
 import sample.jetpack.compose.ui.screen.MainScreen
 
 import sample.jetpack.compose.ui.theme.ComposeSampleTheme
+
 import sample.jetpack.compose.utility.constants.MENU_OPTION_LOGIN
 import sample.jetpack.compose.utility.constants.MENU_OPTION_NONE
 import sample.jetpack.compose.utility.constants.MenuOptionsValidator
@@ -55,7 +59,7 @@ class MainActivity : ComponentActivity() {
 		setContent {
 			ComposeSampleTheme {
 
-				val state = viewModel.viewState.collectAsState()
+				val state: State<MainState> = viewModel.viewState.collectAsState()
 
 				Surface(
 					color = MaterialTheme.colorScheme.background

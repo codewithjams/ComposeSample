@@ -22,4 +22,8 @@ class ActionCaptureMiddleWare<S : State, A : Action> : MiddleWare<S, A> {
 		Truth.assertThat(capturedActions).contains(action)
 	}
 
+	fun assertNotContains(action : A) {
+		Truth.assertThat(capturedActions).doesNotContain(action)
+	}
+
 }
