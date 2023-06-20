@@ -10,19 +10,30 @@ class FileTransferReducer : Reducer<FileTransferState, FileTransferAction> {
 		currentState : FileTransferState,
 		action : FileTransferAction
 	) : FileTransferState = when (action) {
-		is FileTransferAction.UI.DeterminateProgressUpdate   -> currentState.onDeterminateProgress(
+
+		is FileTransferAction.UI.DeterminateProgressUpdate -> currentState.onDeterminateProgress(
 			action.transferred,
 			action.percentage
 		)
-		FileTransferAction.UI.DownloadCompleted              -> currentState.onDownloadCompleted()
-		is FileTransferAction.UI.DownloadError               -> currentState.onDownloadError(action.message)
-		FileTransferAction.UI.DownloadPaused                 -> currentState.onDownloadPaused()
-		is FileTransferAction.UI.FileNameChanged             -> currentState.onFileNameChanged(action.newFileName)
+
+		FileTransferAction.UI.DownloadCompleted -> currentState.onDownloadCompleted()
+
+		is FileTransferAction.UI.DownloadError -> currentState.onDownloadError(action.message)
+
+		FileTransferAction.UI.DownloadPaused -> currentState.onDownloadPaused()
+
+		is FileTransferAction.UI.FileNameChanged -> currentState.onFileNameChanged(
+			action.newFileName
+		)
+
 		is FileTransferAction.UI.IndeterminateProgressUpdate -> currentState.onIndeterminateProgress(
 			action.transferred
 		)
-		is FileTransferAction.UI.URLChanged                  -> currentState.onURLChanged(action.newURL)
-		else                                                 -> currentState
+
+		is FileTransferAction.UI.URLChanged -> currentState.onURLChanged(action.newURL)
+
+		else -> currentState
+
 	}
 
 	private fun FileTransferState.onFileNameChanged(newFileName : String) : FileTransferState =

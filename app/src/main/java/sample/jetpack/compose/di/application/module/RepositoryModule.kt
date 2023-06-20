@@ -1,7 +1,9 @@
 package sample.jetpack.compose.di.application.module
 
+import android.content.Context
 import dagger.Module
 import dagger.Provides
+import sample.jetpack.compose.di.application.qualifier.ApplicationContext
 
 import sample.jetpack.compose.repository.SampleRepository
 
@@ -14,8 +16,9 @@ class RepositoryModule {
 
 	@Provides
 	fun providesSampleRepository(
-		resourceUtils : ResourceUtils
+		resourceUtils : ResourceUtils,
+		@ApplicationContext context: Context
 	) : SampleRepository =
-		SampleRepositoryImpl(resourceUtils)
+		SampleRepositoryImpl(resourceUtils, context)
 
 }

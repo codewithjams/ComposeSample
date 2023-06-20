@@ -17,12 +17,33 @@ data class FileTransferState(
 	val errorVisible: Boolean
 		get() = downloadError.isNotBlank()
 
+	val downloadControlsEnabled: Boolean
+		get() = isDownloadControlsEnabled()
+
 	private fun isDownloadingEnabled(): Boolean {
 
 		if (fileName.isBlank() || url.isBlank())
 			return false
 
+		if (downloadPaused)
+			return false
+
 		if (downloading)
+			return false
+
+		return true
+
+	}
+
+	private fun isDownloadControlsEnabled(): Boolean {
+
+		if (downloading)
+			return true
+
+		if (downloadCompleted)
+			return false
+
+		if (errorVisible)
 			return false
 
 		return true

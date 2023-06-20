@@ -73,7 +73,7 @@ fun FileTransferScreen(
 			modifier = Modifier.align(alignment = Alignment.End)
 		) {
 
-			AnimatedVisibility(visible = state.downloading) {
+			AnimatedVisibility(visible = state.downloadControlsEnabled) {
 				if (state.downloadPaused) {
 					Button(
 						onClick = onResumeClicked
