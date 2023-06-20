@@ -27,6 +27,7 @@ import sample.jetpack.compose.mvi.viewModel.MainViewModel
 import sample.jetpack.compose.ui.screen.MainScreen
 
 import sample.jetpack.compose.ui.theme.ComposeSampleTheme
+import sample.jetpack.compose.utility.constants.MENU_OPTION_FILE_TRANSFER
 
 import sample.jetpack.compose.utility.constants.MENU_OPTION_LOGIN
 import sample.jetpack.compose.utility.constants.MENU_OPTION_NONE
@@ -89,6 +90,7 @@ class MainActivity : ComponentActivity() {
 
 	private fun onNavigateScreen(@MenuOptionsValidator code: Int) {
 		when(code) {
+			MENU_OPTION_FILE_TRANSFER -> navigateToFileTransfer()
 			MENU_OPTION_LOGIN -> navigateToLoginScreen()
 			MENU_OPTION_NONE  -> Unit
 		}
@@ -96,6 +98,10 @@ class MainActivity : ComponentActivity() {
 
 	private fun navigateToLoginScreen() {
 		navigateTo(LoginActivity::class.java)
+	}
+
+	private fun navigateToFileTransfer() {
+		navigateTo(FileTransferActivity::class.java)
 	}
 
 }

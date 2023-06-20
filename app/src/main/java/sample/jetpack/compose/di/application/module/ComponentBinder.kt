@@ -11,14 +11,17 @@ import dagger.android.ContributesAndroidInjector
 
 import dagger.multibindings.IntoMap
 
+import sample.jetpack.compose.di.activity.FileTransferModule
 import sample.jetpack.compose.di.activity.LoginModule
 import sample.jetpack.compose.di.activity.MainModule
 
 import sample.jetpack.compose.di.application.mapKey.ViewModelKey
 
+import sample.jetpack.compose.mvi.viewModel.FileTransferViewModel
 import sample.jetpack.compose.mvi.viewModel.LoginViewModel
 import sample.jetpack.compose.mvi.viewModel.MainViewModel
 
+import sample.jetpack.compose.ui.activity.FileTransferActivity
 import sample.jetpack.compose.ui.activity.LoginActivity
 import sample.jetpack.compose.ui.activity.MainActivity
 
@@ -40,5 +43,13 @@ abstract class ComponentBinder {
 	@IntoMap
 	@ViewModelKey(LoginViewModel::class)
 	abstract fun providesLoginViewModel(viewModel : LoginViewModel) : ViewModel
+
+	@ContributesAndroidInjector(modules = [FileTransferModule::class])
+	abstract fun contributesFileTransferActivity() : FileTransferActivity
+
+	@Binds
+	@IntoMap
+	@ViewModelKey(FileTransferViewModel::class)
+	abstract fun providesFileTransferViewModel(viewModel : FileTransferViewModel) : ViewModel
 
 }

@@ -31,6 +31,10 @@
 			android:name = ".ui.activity.LoginActivity"
 			android:exported = "false" />
 
+		<activity
+			android:name = ".ui.activity.FileTransferActivity"
+			android:exported = "false" />
+
 	</application>
 
 </manifest>

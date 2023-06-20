@@ -7,6 +7,7 @@
 	<string name = "main_screen_menu_options_description">Below is the screens available:</string>
 	<string-array name = "main_screen_menu_options">
 		<item>Login Screen</item>
+		<item>HTTP File Transfer</item>
 	</string-array>
 
 	<string name = "login_screen_field_user_name">User Name</string>
@@ -23,6 +24,13 @@
 	<string name = "login_screen_validation_password_containing_illegal_characters">
         Following characters are not allowed : ?, ~, ., %
     </string>
+
+	<string name = "downloader_screen_field_file_name">File Name</string>
+	<string name = "downloader_screen_field_url">URL</string>
+	<string name = "downloader_screen_button_download">Download</string>
+	<string name = "downloader_screen_button_pause">Pause</string>
+	<string name = "downloader_screen_button_resume">Resume</string>
+	<string name = "downloader_screen_message_downloaded">Downloaded</string>
 
 	<string name = "content_description_login_password_visibility_toggle">Password Toggle</string>
 
