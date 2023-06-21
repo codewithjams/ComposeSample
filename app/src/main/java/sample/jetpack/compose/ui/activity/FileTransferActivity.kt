@@ -72,4 +72,9 @@ class FileTransferActivity : ComponentActivity() {
 
 	}
 
+	override fun onDestroy() {
+		super.onDestroy()
+		_viewModel = null
+	}
+
 }
