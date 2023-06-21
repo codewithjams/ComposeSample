@@ -31,6 +31,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 
+import androidx.compose.ui.tooling.preview.Preview
+
 import androidx.compose.ui.unit.dp
 
 import sample.jetpack.compose.R
@@ -222,4 +224,17 @@ private fun DownloaderProgress(
 
 	}
 
+}
+
+@Preview
+@Composable
+private fun FileTransferScreenPreview() {
+	FileTransferScreen(
+		state = FileTransferState(),
+		onFileNameChanged = {},
+		onURLChanged = {},
+		onDownloadClicked = {},
+		onPauseClicked = {},
+		onResumeClicked = {}
+	)
 }
