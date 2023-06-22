@@ -32,6 +32,8 @@ class SampleRepositoryImpl @Inject constructor(
 	private val httpFileTransfer : HTTPFileTransfer by lazy {
 		HTTPFileTransfer()
 	}
+	override val httpFileTransferResultFlow : Flow<HTTPFileTransferResult>
+		get() = httpFileTransfer.resultFlow
 
 	override suspend fun performLogin(userName : String, password : String) : Flow<Boolean> =
 		callbackFlow {
@@ -42,41 +44,35 @@ class SampleRepositoryImpl @Inject constructor(
 
 	override suspend fun startDownload(
 		fileName : String,
-		url : String
-	) : Flow<HTTPFileTransferResult> {
-		httpFileTransfer.startDownload(
-			fileName,
-			context.filesDir,
-			url
-		)
-		return httpFileTransfer.resultFlow
+		url : String,
+		headers : Map<String, String>
+	) {
+		httpFileTransfer.startDownload(fileName, context.filesDir, url, headers)
 	}
 
 	override suspend fun pauseDownload() {
 		httpFileTransfer.pauseDownload()
 	}
 
-	override suspend fun resumeDownload() : Flow<HTTPFileTransferResult> {
+	override suspend fun resumeDownload() {
 		httpFileTransfer.resumeDownload()
-		return httpFileTransfer.resultFlow
 	}
 
 	override suspend fun startUpload(
 		file : File,
 		mimeType : String,
-		url : String
-	) : Flow<HTTPFileTransferResult> {
-		httpFileTransfer.startUpload(file, mimeType, url)
-		return httpFileTransfer.resultFlow
+		url : String,
+		headers : Map<String, String>
+	) {
+		httpFileTransfer.startUpload(file, mimeType, url, headers)
 	}
 
 	override suspend fun pauseUpload() {
 		httpFileTransfer.pauseUpload()
 	}
 
-	override suspend fun resumeUpload() : Flow<HTTPFileTransferResult> {
+	override suspend fun resumeUpload() {
 		httpFileTransfer.resumeUpload()
-		return httpFileTransfer.resultFlow
 	}
 
 }

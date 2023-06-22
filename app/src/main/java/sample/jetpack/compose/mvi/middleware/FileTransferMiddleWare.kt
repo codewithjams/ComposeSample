@@ -57,7 +57,8 @@ class FileTransferMiddleWare @Inject constructor(
 		fileName : String,
 		url : String
 	) {
-		repository.startDownload(fileName, url).transformWhile { value ->
+		repository.startDownload(fileName, url)
+		repository.httpFileTransferResultFlow.transformWhile { value ->
 			emit(value)
 			value != HTTPFileTransferResult.Success &&
 					value !is HTTPFileTransferResult.Failed &&
@@ -77,7 +78,8 @@ class FileTransferMiddleWare @Inject constructor(
 	}
 
 	private suspend fun onResumeDownload(store : FileTransferStore) {
-		repository.resumeDownload().transformWhile { value ->
+		repository.resumeDownload()
+		repository.httpFileTransferResultFlow.transformWhile { value ->
 			emit(value)
 			value != HTTPFileTransferResult.Success &&
 					value !is HTTPFileTransferResult.Failed &&
@@ -90,6 +92,7 @@ class FileTransferMiddleWare @Inject constructor(
 				HTTPFileTransferResult.Success     -> onFileDownloadSuccess(store)
 			}
 		}
+		repository.resumeDownload()
 	}
 
 	private suspend fun onFileDownloadProgress(
@@ -153,7 +156,8 @@ class FileTransferMiddleWare @Inject constructor(
 			file = file,
 			mimeType = mimeType,
 			url = "http://10.0.2.2:8080/file"
-		).transformWhile { value ->
+		)
+		repository.httpFileTransferResultFlow.transformWhile { value ->
 			emit(value)
 			value != HTTPFileTransferResult.Success &&
 					value !is HTTPFileTransferResult.Failed &&
@@ -173,7 +177,8 @@ class FileTransferMiddleWare @Inject constructor(
 	}
 
 	private suspend fun onResumeUpload(store : FileTransferStore) {
-		repository.resumeUpload().transformWhile { value ->
+		repository.resumeUpload()
+		repository.httpFileTransferResultFlow.transformWhile { value ->
 			emit(value)
 			value != HTTPFileTransferResult.Success &&
 					value !is HTTPFileTransferResult.Failed &&
