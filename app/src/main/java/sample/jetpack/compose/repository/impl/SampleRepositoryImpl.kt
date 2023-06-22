@@ -43,26 +43,23 @@ class SampleRepositoryImpl @Inject constructor(
 	override suspend fun startDownload(
 		fileName : String,
 		url : String
-	) : Flow<HTTPFileTransferResult> =
+	) : Flow<HTTPFileTransferResult> {
 		httpFileTransfer.startDownload(
 			fileName,
 			context.filesDir,
 			url
 		)
+		return httpFileTransfer.resultFlow
+	}
 
 	override suspend fun pauseDownload() {
 		httpFileTransfer.pauseDownload()
 	}
 
-	override suspend fun resumeDownload(
-		fileName : String,
-		url : String
-	) : Flow<HTTPFileTransferResult> =
-		httpFileTransfer.resumeDownload(
-			fileName,
-			context.filesDir,
-			url
-		)
+	override suspend fun resumeDownload() : Flow<HTTPFileTransferResult> {
+		httpFileTransfer.resumeDownload()
+		return httpFileTransfer.resultFlow
+	}
 
 	override suspend fun startUpload(
 		file : File,

@@ -14,7 +14,7 @@ interface SampleRepository {
 
 	suspend fun pauseDownload()
 
-	suspend fun resumeDownload(fileName : String, url : String) : Flow<HTTPFileTransferResult>
+	suspend fun resumeDownload() : Flow<HTTPFileTransferResult>
 
 	suspend fun startUpload(file: File, mimeType: String, url : String) : Flow<HTTPFileTransferResult>
 

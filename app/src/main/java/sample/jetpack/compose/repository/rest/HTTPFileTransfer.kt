@@ -1,11 +1,7 @@
 package sample.jetpack.compose.repository.rest
 
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flow
 
 import okhttp3.MediaType
 import okhttp3.MultipartBody
@@ -22,6 +18,7 @@ import okio.Sink
 import okio.buffer
 
 import retrofit2.Call
+import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 
@@ -51,35 +48,36 @@ class HTTPFileTransfer {
 
 	private var _resultFlow = MutableStateFlow<HTTPFileTransferResult>(HTTPFileTransferResult.None)
 
-	val resultFlow: StateFlow<HTTPFileTransferResult>
+	val resultFlow : StateFlow<HTTPFileTransferResult>
 		get() = _resultFlow
 
-	private var uploadBuilder: UploadBuilder? = null
+	private var downloadBuilder : DownloadBuilder? = null
+	private var uploadBuilder : UploadBuilder? = null
 
 	fun startDownload(
 		fileName : String,
 		filePath : File,
 		url : String
-	) : Flow<HTTPFileTransferResult> {
-		transferControl = FileTransferControl.START
-		return downloadFile(fileName, filePath, url)
+	) {
+		downloadBuilder = DownloadBuilder(fileName, filePath, url).also { builder ->
+			transferControl = FileTransferControl.START
+			downloadFile(builder)
+		}
 	}
 
 	fun pauseDownload() {
 		transferControl = FileTransferControl.PAUSE
 	}
 
-	fun resumeDownload(
-		fileName : String,
-		filePath : File,
-		url : String
-	) : Flow<HTTPFileTransferResult> {
-		transferControl = FileTransferControl.RESUME
-		return downloadFile(fileName, filePath, url)
+	fun resumeDownload() {
+		downloadBuilder?.let {
+			transferControl = FileTransferControl.RESUME
+			downloadFile(it)
+		}
 	}
 
 	suspend fun startUpload(
-		file: File,
+		file : File,
 		mimeType : String,
 		url : String,
 		headers : Map<String, String> = emptyMap()
@@ -101,12 +99,7 @@ class HTTPFileTransfer {
 		}
 	}
 
-	private fun downloadFile(
-		fileName : String,
-		filePath : File,
-		url : String,
-		extraHeaders : Map<String, String> = emptyMap()
-	) : Flow<HTTPFileTransferResult> = flow {
+	private fun downloadFile(builder : DownloadBuilder) {
 
 		val loggingInterceptor = HttpLoggingInterceptor()
 		loggingInterceptor.level = HttpLoggingInterceptor.Level.HEADERS
@@ -124,80 +117,112 @@ class HTTPFileTransfer {
 
 		val service = retrofit.create(HTTPFileTransferService::class.java)
 
-		val file = File(filePath, fileName)
+		val file = builder.getFile()
 
 		val headers : Map<String, String> = mutableMapOf<String, String>().apply {
 			put("Connection", "keep-alive")
 			if (file.exists() && transferControl == FileTransferControl.RESUME) {
 				put("Range", "bytes=${lastReadBytes}-")
 			}
-			putAll(extraHeaders)
+			putAll(builder.headers)
 		}
 
-		emit(HTTPFileTransferResult.Progress.Started)
+		_resultFlow.value = HTTPFileTransferResult.Progress.Started
 
-		val call : Call<ResponseBody> = service.downloadFile(url, headers)
+		service.downloadFile(builder.url, headers).enqueue(
+			object: Callback<ResponseBody> {
 
-		val response : Response<ResponseBody> = call.execute()
+				override fun onResponse(
+					call : Call<ResponseBody>,
+					response : Response<ResponseBody>
+				) {
 
-		if (!response.isSuccessful)
-			throw IllegalStateException("Request is unsuccessful")
-
-		response.body()?.let { responseBody ->
-			responseBody.byteStream().use inputStream@{ inputStream ->
-				BufferedOutputStream(file.outputStream()).use outputStream@{ outputStream ->
-
-					val totalBytes : Long = responseBody.contentLength()
-
-					var progressBytes =
-						if (file.exists() && transferControl == FileTransferControl.RESUME) {
-							lastReadBytes
-						} else {
-							0L
-						}
-
-					val data = ByteArray(DEFAULT_READ_BUFFER_SIZE)
-
-					while (true) {
-
-						if (transferControl == FileTransferControl.PAUSE) {
-							lastReadBytes = progressBytes
-							call.cancel()
-							outputStream.flush()
-							emit(HTTPFileTransferResult.Progress.Paused)
-							return@inputStream
-						}
-
-						val bytes = inputStream.read()
-
-						if (bytes == -1)
-							break
-
-						outputStream.write(data, 0, bytes)
-
-						progressBytes += bytes
-
-						emit(HTTPFileTransferResult.Progress.Transferred(progressBytes, totalBytes))
-
+					if (!response.isSuccessful) {
+						_resultFlow.value = HTTPFileTransferResult.Failed.Unknown(
+							IllegalStateException("Request is unsuccessful"),
+							"Request is unsuccessful"
+						)
+						return
 					}
 
-					outputStream.flush()
+					if (response.body() == null) {
+						_resultFlow.value = HTTPFileTransferResult.Failed.Unknown(
+							IllegalStateException("Request is successful but no Response"),
+							"Request is successful but no Response"
+						)
+						return
+					}
+
+					response.body()?.let { responseBody ->
+						responseBody.byteStream().use inputStream@{ inputStream ->
+							BufferedOutputStream(file.outputStream()).use outputStream@{ outputStream ->
+
+								val totalBytes : Long = responseBody.contentLength()
+
+								var progressBytes =
+									if (file.exists() && transferControl == FileTransferControl.RESUME) {
+										lastReadBytes
+									} else {
+										0L
+									}
+
+								val data = ByteArray(DEFAULT_READ_BUFFER_SIZE)
+
+								while (true) {
+
+									if (transferControl == FileTransferControl.PAUSE) {
+										lastReadBytes = progressBytes
+										call.cancel()
+										outputStream.flush()
+										_resultFlow.value = HTTPFileTransferResult.Progress.Paused
+										return@inputStream
+									}
+
+									val bytes = inputStream.read()
+
+									if (bytes == -1)
+										break
+
+									outputStream.write(data, 0, bytes)
+
+									progressBytes += bytes
+
+									_resultFlow.value = HTTPFileTransferResult.Progress.Transferred(progressBytes, totalBytes)
+
+								}
+
+								outputStream.flush()
+
+							}
+						}
+						_resultFlow.value = HTTPFileTransferResult.Success
+					}
 
 				}
+
+				override fun onFailure(call : Call<ResponseBody>, cause : Throwable) {
+
+					builder.getFile().also { file ->
+						if (file.exists()) {
+							file.delete()
+						}
+					}
+
+					val message : String = cause.message ?: "Something went wrong"
+
+					_resultFlow.value = when (cause) {
+						is ConnectException       -> HTTPFileTransferResult.Failed.NoConnection(message)
+						is SecurityException      -> HTTPFileTransferResult.Failed.MissingPermission(message)
+						is SocketTimeoutException -> HTTPFileTransferResult.Failed.TimeOut(message)
+						else                      -> HTTPFileTransferResult.Failed.Unknown(cause, message)
+					}
+
+				}
+
 			}
-			emit(HTTPFileTransferResult.Success)
-		} ?: throw IllegalStateException("Request is successful but no Response")
+		)
 
-	}.catch { cause ->
-
-		val file = File(filePath, fileName)
-		if (file.exists()) {
-			file.delete()
-		}
-
-		emit(onFailure(cause))
-
-	}.distinctUntilChanged()
+	}
 
 	private suspend fun uploadFile(builder : UploadBuilder) {
 
@@ -239,7 +264,7 @@ class HTTPFileTransfer {
 
 		try {
 
-			val response: Response<ResponseBody> = service.uploadFile(builder.url, headers, part)
+			val response : Response<ResponseBody> = service.uploadFile(builder.url, headers, part)
 
 			if (!response.isSuccessful)
 				throw IllegalStateException("Request is unsuccessful")
@@ -248,11 +273,11 @@ class HTTPFileTransfer {
 
 			uploadBuilder = null
 
-		} catch (cause: Throwable) {
+		} catch (cause : Throwable) {
 
 			val message : String = cause.message ?: "Something went wrong"
 
-			_resultFlow.value = when(cause) {
+			_resultFlow.value = when (cause) {
 				is ConnectException       -> HTTPFileTransferResult.Failed.NoConnection(message)
 				is SecurityException      -> HTTPFileTransferResult.Failed.MissingPermission(message)
 				is SocketTimeoutException -> HTTPFileTransferResult.Failed.TimeOut(message)
@@ -263,17 +288,6 @@ class HTTPFileTransfer {
 
 		}
 
-	}
-
-	private fun onFailure(cause : Throwable) : HTTPFileTransferResult.Failed {
-		val message : String = cause.message ?: "Something went wrong"
-		android.util.Log.e("HTTP File Transfer", message)
-		return when (cause) {
-			is ConnectException       -> HTTPFileTransferResult.Failed.NoConnection(message)
-			is SecurityException      -> HTTPFileTransferResult.Failed.MissingPermission(message)
-			is SocketTimeoutException -> HTTPFileTransferResult.Failed.TimeOut(message)
-			else                      -> HTTPFileTransferResult.Failed.Unknown(cause, message)
-		}
 	}
 
 }
@@ -292,21 +306,32 @@ private interface HTTPFileTransferService {
 	suspend fun uploadFile(
 		@Url url : String,
 		@HeaderMap headers : Map<String, String>,
-		@Part file: MultipartBody.Part
+		@Part file : MultipartBody.Part
 	) : Response<ResponseBody>
 
 }
 
+data class DownloadBuilder(
+	val fileName : String,
+	val filePath : File,
+	val url : String,
+	val headers : Map<String, String> = emptyMap()
+) {
+
+	fun getFile(): File = File(filePath, fileName)
+
+}
+
 data class UploadBuilder(
-	val file: File,
+	val file : File,
 	val mimeType : String,
-	val url: String,
-	val headers: Map<String, String> = emptyMap()
+	val url : String,
+	val headers : Map<String, String> = emptyMap()
 )
 
 private class ProgressRequestBody(
-	private val delegate: RequestBody,
-	val callback: (Long, Long) -> Unit
+	private val delegate : RequestBody,
+	val callback : (Long, Long) -> Unit
 ) : RequestBody() {
 
 	override fun contentType() : MediaType? = delegate.contentType()
@@ -319,12 +344,12 @@ private class ProgressRequestBody(
 		countingSink.flush()
 	}
 
-	private inner class CountingSink(delegate: Sink) : ForwardingSink(delegate) {
+	private inner class CountingSink(delegate : Sink) : ForwardingSink(delegate) {
 
 		private val total = contentLength()
 		private var uploaded = 0L
 
-		override fun write(source: Buffer, byteCount: Long) {
+		override fun write(source : Buffer, byteCount : Long) {
 			super.write(source, byteCount)
 			uploaded += byteCount
 			callback.invoke(uploaded, total)

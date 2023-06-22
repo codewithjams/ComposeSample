@@ -35,9 +35,8 @@ class FileTransferMiddleWare @Inject constructor(
 				onPerformDownload(store, it.fileName, it.url)
 			}
 
-			FileTransferAction.Download.Resume   -> currentState.let {
-				onResumeDownload(store, it.fileName, it.url)
-			}
+			FileTransferAction.Download.Resume   ->
+				onResumeDownload(store)
 
 			is FileTransferAction.Upload.Perform ->
 				onPerformUpload(store, action.file, action.mimeType)
@@ -77,12 +76,8 @@ class FileTransferMiddleWare @Inject constructor(
 		repository.pauseDownload()
 	}
 
-	private suspend fun onResumeDownload(
-		store : FileTransferStore,
-		fileName : String,
-		url : String
-	) {
-		repository.resumeDownload(fileName, url).transformWhile { value ->
+	private suspend fun onResumeDownload(store : FileTransferStore) {
+		repository.resumeDownload().transformWhile { value ->
 			emit(value)
 			value != HTTPFileTransferResult.Success &&
 					value !is HTTPFileTransferResult.Failed &&
