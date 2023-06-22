@@ -4,6 +4,7 @@
 	xmlns:tools = "http://schemas.android.com/tools">
 
 	<uses-permission android:name = "android.permission.INTERNET" />
+	<uses-permission android:name = "android.permission.READ_MEDIA_IMAGES" />
 
 	<application
 		android:name = ".application.SampleApplication"
@@ -15,6 +16,7 @@
 		android:roundIcon = "@mipmap/ic_launcher_round"
 		android:supportsRtl = "true"
 		android:theme = "@style/Theme.ComposeSample"
+		android:usesCleartextTraffic = "true"
 		tools:targetApi = "31">
 
 		<activity

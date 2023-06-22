@@ -13,6 +13,7 @@ import sample.jetpack.compose.mvi.state.FileTransferState
 
 import sample.jetpack.compose.mvi.store.FileTransferStore
 import sample.jetpack.compose.mvi.store.Store
+import java.io.File
 
 import javax.inject.Inject
 
@@ -26,6 +27,14 @@ class FileTransferViewModel @Inject constructor(
 		middleWares = listOf(middleWare),
 		coroutineScope = viewModelScope
 	)
+
+	fun onOptionDownloadClicked() {
+		dispatchActionToStore(FileTransferAction.UI.OptionDownloadClicked)
+	}
+
+	fun onOptionUploadClicked() {
+		dispatchActionToStore(FileTransferAction.UI.OptionUploadClicked)
+	}
 
 	fun onFileNameChanged(newFileName: String) {
 		dispatchActionToStore(FileTransferAction.UI.FileNameChanged(newFileName))
@@ -45,6 +54,13 @@ class FileTransferViewModel @Inject constructor(
 
 	fun onDownloadResumeClicked() {
 		dispatchActionToStore(FileTransferAction.Download.Resume, dispatcher = Dispatchers.IO)
+	}
+
+	fun onFileSelectedByUser(file: File, mimeType: String) {
+		dispatchActionToStore(
+			FileTransferAction.Upload.Perform(file, mimeType),
+			dispatcher = Dispatchers.IO
+		)
 	}
 
 }

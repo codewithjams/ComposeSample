@@ -31,6 +31,8 @@
 	<string name = "downloader_screen_button_pause">Pause</string>
 	<string name = "downloader_screen_button_resume">Resume</string>
 	<string name = "downloader_screen_message_downloaded">Downloaded</string>
+	<string name = "file_transfer_screen_button_upload">Upload</string>
+	<string name = "file_transfer_screen_message_uploaded">Uploaded</string>
 
 	<string name = "content_description_login_password_visibility_toggle">Password Toggle</string>
 

@@ -11,6 +11,10 @@ class FileTransferReducer : Reducer<FileTransferState, FileTransferAction> {
 		action : FileTransferAction
 	) : FileTransferState = when (action) {
 
+		FileTransferAction.UI.OptionDownloadClicked -> currentState.onOptionDownloadClicked()
+
+		FileTransferAction.UI.OptionUploadClicked -> currentState.onOptionUploadClicked()
+
 		is FileTransferAction.UI.DeterminateProgressUpdate -> currentState.onDeterminateProgress(
 			action.transferred,
 			action.percentage
@@ -32,9 +36,31 @@ class FileTransferReducer : Reducer<FileTransferState, FileTransferAction> {
 
 		is FileTransferAction.UI.URLChanged -> currentState.onURLChanged(action.newURL)
 
+		is FileTransferAction.UI.UploadIndeterminateProgressUpdate ->
+			currentState.onUploadIndeterminateProgress(action.transferred)
+
+		is FileTransferAction.UI.UploadDeterminateProgressUpdate ->
+			currentState.onUploadDeterminateProgress(action.percentage, action.transferred)
+
+		FileTransferAction.UI.UploadPaused -> currentState.onUploadPaused()
+
+		FileTransferAction.UI.UploadCompleted -> currentState.onUploadCompleted()
+
+		is FileTransferAction.UI.UploadError -> currentState.onUploadError(action.message)
+
 		else -> currentState
 
 	}
+
+	private fun FileTransferState.onOptionDownloadClicked(): FileTransferState =
+		this.copy(
+			transferType = FileTransferState.TransferType.DOWNLOAD
+		)
+
+	private fun FileTransferState.onOptionUploadClicked(): FileTransferState =
+		this.copy(
+			transferType = FileTransferState.TransferType.UPLOAD
+		)
 
 	private fun FileTransferState.onFileNameChanged(newFileName : String) : FileTransferState =
 		this.copy(
@@ -48,12 +74,12 @@ class FileTransferReducer : Reducer<FileTransferState, FileTransferAction> {
 
 	private fun FileTransferState.onIndeterminateProgress(transferred : String) : FileTransferState =
 		this.copy(
-			downloading = true,
-			progressPercentage = -1f,
-			downloadedText = transferred,
-			downloadError = "",
-			downloadPaused = false,
-			downloadCompleted = false
+			transferring = true,
+			transferProgress = -1f,
+			transferText = transferred,
+			transferError = "",
+			transferPaused = false,
+			transferCompleted = false
 		)
 
 	private fun FileTransferState.onDeterminateProgress(
@@ -61,39 +87,86 @@ class FileTransferReducer : Reducer<FileTransferState, FileTransferAction> {
 		percentage : Float
 	) : FileTransferState =
 		this.copy(
-			downloading = true,
-			progressPercentage = percentage,
-			downloadedText = transferred,
-			downloadError = "",
-			downloadPaused = false,
-			downloadCompleted = false
+			transferring = true,
+			transferProgress = percentage,
+			transferText = transferred,
+			transferError = "",
+			transferPaused = false,
+			transferCompleted = false
 		)
 
 	private fun FileTransferState.onDownloadPaused() : FileTransferState =
 		this.copy(
-			downloading = false,
-			downloadPaused = true,
-			downloadCompleted = false
+			transferring = false,
+			transferPaused = true,
+			transferCompleted = false
 		)
 
 	private fun FileTransferState.onDownloadCompleted() : FileTransferState =
 		this.copy(
-			downloading = false,
-			progressPercentage = 100f,
-			downloadedText = "",
-			downloadError = "",
-			downloadPaused = false,
-			downloadCompleted = true
+			transferring = false,
+			transferProgress = 100f,
+			transferText = "",
+			transferError = "",
+			transferPaused = false,
+			transferCompleted = true
 		)
 
 	private fun FileTransferState.onDownloadError(message : String) : FileTransferState =
 		this.copy(
-			downloading = false,
-			progressPercentage = -1f,
-			downloadedText = "",
-			downloadError = message,
-			downloadPaused = false,
-			downloadCompleted = false
+			transferring = false,
+			transferProgress = -1f,
+			transferText = "",
+			transferError = message,
+			transferPaused = false,
+			transferCompleted = false
+		)
+
+	private fun FileTransferState.onUploadIndeterminateProgress(transferred : String): FileTransferState =
+		this.copy(
+			transferring = true,
+			transferProgress = -1f,
+			transferText = transferred,
+			transferError = "",
+			transferPaused = false,
+			transferCompleted = false
+		)
+
+	private fun FileTransferState.onUploadDeterminateProgress(percentage : Float, transferred : String): FileTransferState =
+		this.copy(
+			transferring = true,
+			transferProgress = percentage,
+			transferText = transferred,
+			transferError = "",
+			transferPaused = false,
+			transferCompleted = false
+		)
+
+	private fun FileTransferState.onUploadPaused(): FileTransferState =
+		this.copy(
+			transferring = true,
+			transferPaused = true,
+			transferCompleted = false
+		)
+
+	private fun FileTransferState.onUploadCompleted(): FileTransferState =
+		this.copy(
+			transferring = false,
+			transferProgress = 1.0f,
+			transferText = "",
+			transferError = "",
+			transferPaused = false,
+			transferCompleted = true
+		)
+
+	private fun FileTransferState.onUploadError(message : String): FileTransferState =
+		this.copy(
+			transferring = false,
+			transferProgress = -1f,
+			transferText = "",
+			transferError = message,
+			transferPaused = false,
+			transferCompleted = false
 		)
 
 }

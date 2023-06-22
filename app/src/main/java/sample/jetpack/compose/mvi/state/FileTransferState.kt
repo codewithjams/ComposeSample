@@ -1,53 +1,42 @@
 package sample.jetpack.compose.mvi.state
 
 data class FileTransferState(
-	val fileName: String = "",
-	val url: String = "",
-	val downloadedText: String = "",
-	val progressPercentage: Float = 0.0f,
-	val downloading: Boolean = false,
-	val downloadError: String = "",
-	val downloadPaused: Boolean = false,
-	val downloadCompleted: Boolean = false
+	val fileName : String = "",
+	val url : String = "",
+	val transferType: TransferType = TransferType.NONE,
+	val transferText : String = "",
+	val transferProgress : Float = 0.0f,
+	val transferring : Boolean = false,
+	val transferError : String = "",
+	val transferPaused : Boolean = false,
+	val transferCompleted : Boolean = false
 ) : State {
 
-	val downloadEnabled: Boolean
-		get() = isDownloadingEnabled()
+	val transferEnabled : Boolean
+		get() = isTransferEnabled()
 
-	val errorVisible: Boolean
-		get() = downloadError.isNotBlank()
+	val errorVisible : Boolean
+		get() = transferError.isNotBlank()
 
-	val downloadControlsEnabled: Boolean
-		get() = isDownloadControlsEnabled()
+	private fun isTransferEnabled() : Boolean {
 
-	private fun isDownloadingEnabled(): Boolean {
-
-		if (fileName.isBlank() || url.isBlank())
+		if (transferType == TransferType.DOWNLOAD && (fileName.isBlank() || url.isBlank()))
 			return false
 
-		if (downloadPaused)
+		if (transferPaused)
 			return false
 
-		if (downloading)
+		if (transferring)
 			return false
 
 		return true
 
 	}
 
-	private fun isDownloadControlsEnabled(): Boolean {
-
-		if (downloading)
-			return true
-
-		if (downloadCompleted)
-			return false
-
-		if (errorVisible)
-			return false
-
-		return true
-
+	enum class TransferType {
+		NONE,
+		DOWNLOAD,
+		UPLOAD
 	}
 
 }
